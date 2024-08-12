@@ -1,0 +1,2 @@
+yahoo_fantasy_api~=2.8.0
+discord~=2.3.2
