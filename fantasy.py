@@ -3,18 +3,23 @@ from yahoo_oauth import OAuth2
 import yahoo_fantasy_api as yfa
 
 class YahooLeague:
-    lg = None
-    tms = {}
-    managers = {}
+    # lg = None
+    # tms = {}
+    # managers = {}
     def __init__(self):
         print("initializing league....")
         # connect to yahoo api
         sc = OAuth2(None, None, from_file="oauth2.json")
-
+        # dictionary with emails originally stored as keys with team objects as values
+        # the key gets replaced with the users discord username once they use the verify command
+        self.tms = {}
+        self.managers = {}
+        # store transactions for updating purposes
+        self.prev_transaction = None
         # get game object
         gm = yfa.Game(sc, 'nhl')
         # create league
-        self.lg = gm.to_league('453.l.5186')
+        self.lg = gm.to_league('453.l.438')
         temp_teams = self.lg.teams()
         for key in self.lg.teams():
             # create team object
@@ -31,13 +36,3 @@ class YahooLeague:
             self.managers[email] = user[0]['manager']
 
         print("league initialized!")
-
-
-def update_trades():
-    try:
-        trade = YahooLeague.lg_attributes.transactions('trade', '1')
-    except Exception as e:
-        print(f'invalid attributes {e}')
-        return
-
-    return trade

@@ -37,39 +37,31 @@ async def verify(ctx: commands.Context):
     await ctx.send(f'Successfully verified Discord user {ctx.author.name} with Yahoo user {email}')
     return
 
-
 @bot.hybrid_command()
-async def get_trades(ctx: commands.Context):
-    await ctx.send('grabbing trades')
-    try:
-      trade = fantasy.update_trades()
-    except Exception as e:
-        print(e)
-        return
-    await ctx.send(f'TRADE ALERT: {trade}')
-    print(trade)
+async def roster(ctx: commands.Context):
+    # grab associated discord user
+    user = league.tms[ctx.author.name]
+    # print roster
+    roster = user.roster()
+    for player in roster:
+        await ctx.send(f'{player['name']}, {player['eligible_positions']}', ephemeral=True)
 
-# dictionary storing last transaction
-prev_transaction = None
 @tasks.loop(minutes=1)
 async def check_transactions():
-    try:
-        # get most recent league transaction
-        transaction = league.lg.transactions('trade', '1')
-        if transaction != prev_transaction:
-            # transactions are not the same, meaning a new trade has gone through
-            trader1 = transaction['trader_team_name']
-            trader2 = transaction['tradee team name']
-            # check for picks
-            # if 'picks' in transaction:
-            #     # there were picks in the trade, needs to be formatted appropriately
-
-
-    except Exception as e:
-        print('transactions error')
-        print(e)
+    # trades_announcement channel id
+    channel_id = 1272611448605904976
+    curr_transaction = get_trade_info()
+    # if transactions are different, output new trade
+    if curr_transaction != league.prev_transaction:
+        # reassign transaction
+        league.prev_transaction = curr_transaction
+        # get bot channel
+        channel = bot.get_channel(channel_id)
+        await channel.send('TRADE ALERT:')
+     #   print('TRADE ALERT:')
+        for key in curr_transaction:
+            await channel.send(f'{key} trades {curr_transaction[key]}')
     await asyncio.sleep(60)
-
 
 @bot.event
 async def on_ready():
@@ -77,6 +69,24 @@ async def on_ready():
     await bot.tree.sync()
     check_transactions.start()
 
+def get_trade_info():
+    # grab players dictionary, it's buried
+    players = league.lg.transactions('trade', '2')[0]['players']
+    # dict for storing player info with key as team name, value with list of players being traded
+    announcement = {}
+    idx = 0
+    while idx < players['count']: # number of players is associated in dict with key 'count' and value as # of players
+        player_name = players[str(idx)]['player'][0][2]['name']['full']
+        owner = players[str(idx)]['player'][1]['transaction_data'][0]['source_team_name']
+        # check if owner name is already in dict
+        if owner not in announcement:
+            # add to new list with owner as key if not
+            announcement[owner] = [player_name]
+        else:
+            # otherwise, append to corresponding list
+            announcement[owner].append(player_name)
+        idx += 1
+    return announcement
 
 # run bot
 bot.run(token)
