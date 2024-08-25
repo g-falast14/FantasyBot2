@@ -15,11 +15,11 @@ class YahooLeague:
         self.tms = {}
         self.managers = {}
         # store transactions for updating purposes
-        self.prev_transaction = None
+        self.prev_transaction_id = None
         # get game object
         gm = yfa.Game(sc, 'nhl')
         # create league
-        self.lg = gm.to_league('453.l.438')
+        self.lg = gm.to_league('453.l.5186')
         temp_teams = self.lg.teams()
         for key in self.lg.teams():
             # create team object
@@ -36,3 +36,15 @@ class YahooLeague:
             self.managers[email] = user[0]['manager']
 
         print("league initialized!")
+
+class YahooPlayer:
+    def __init__(self, name, owner):
+        self.name = name
+        self.owner = owner
+        self.type = 'Player'
+
+class YahooPick:
+    def __init__(self, round, owner):
+        self.round = round
+        self.owner = owner
+        self.type = 'Pick'
