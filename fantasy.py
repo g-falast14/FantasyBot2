@@ -34,7 +34,8 @@ class YahooLeague:
             self.tms[email] = team
             # also store managers for later use
             self.managers[email] = user[0]['manager']
-
+        # store player data
+        self.players = {}
         print("league initialized!")
 
 class YahooPlayer:
@@ -48,3 +49,5 @@ class YahooPick:
         self.round = round
         self.owner = owner
         self.type = 'Pick'
+
+# method for organizing player rosters
